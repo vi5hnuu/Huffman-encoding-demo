@@ -72,7 +72,7 @@ void encodedTextMap(const Node *root,vector<string> &paths,string path="",Direct
   if(!root){
     return;
   }
-  char pathSlug=' ';
+  char pathSlug='\0';//empty char
   if(parDir!=Direction::STATIC){
     if(parDir==Direction::RIGHT){
       pathSlug='0';
@@ -81,12 +81,40 @@ void encodedTextMap(const Node *root,vector<string> &paths,string path="",Direct
     }
   }
   if(!root->left && !root->right){
-    paths[root->c-'A']=path+pathSlug;
+    paths[root->c-'A']=path;
+      paths[root->c-'A']+=pathSlug;
     return;
   } 
 
   encodedTextMap(root->left,paths,path+pathSlug,Direction::RIGHT);
   encodedTextMap(root->right,paths,path+pathSlug,Direction::LEFT);
+}
+
+pair<char,int> decodeUnit(const Node *root,const string &encodedStr,int i){
+  //FFFFAABBAAABCCCCCDDEDEAABBCAAA
+  if(!root){
+    return {' ',0};
+  }
+
+  if(!root->left && !root->right){
+    return {root->c,i};
+  }
+  if(encodedStr[i]=='0'){
+    return decodeUnit(root->left,encodedStr,i+1);
+  }else{
+    return decodeUnit(root->right,encodedStr,i+1);
+  }
+}
+string decodeString(const Node *tree,const string &encodedStr){
+  //FFFFAABBAAABCCCCCDDEDEAABBCAAA
+    int i=1;
+    string ans="";
+    while(i<encodedStr.length()){
+      pair<char,int> p=decodeUnit(tree,encodedStr,i);
+      ans+=p.first;
+      i=p.second+1;
+    }
+  return ans;
 }
 
 
@@ -125,6 +153,7 @@ int main(){
     Node *nodesmin=huffmanTree.top();
     huffmanTree.pop();
     huffmanTree.push(*nodefmin+*nodesmin);
+    // cout<<nodefmin->val<<" "<<nodesmin->val<<endl;
   }
 
   inorderTree(huffmanTree.top());
@@ -132,24 +161,24 @@ int main(){
     [ 2 E  ]
     [ 5 *  ]
     [ 3 D  ]
-    [ 9 *  ]
-    [ 4 F  ]
-    [ 19 * ] -> *(asterisk) indicate this node is either child or root but not leaf
-    [ 10 A ]
-    [ 30 * ]
-    [ 5 B  ]
     [ 11 * ]
     [ 6 C  ]
+    [ 30 * ] -> *(asterisk) indicate this node is either child or root but not leaf
+    [ 4 F  ]
+    [ 9 *  ]
+    [ 5 B  ]
+    [ 19 * ]
+    [ 10 A ]
   */
 
   printHuffmanEncoding(huffmanTree.top());
   /*
-  0000   E
-  0001   D
-  001    F
-  01     A
-  10     B
-  11     C
+  000   E
+  001    D
+  01     C
+  100    F
+  101    B
+  11     A
   */
 
  encodedTextMap(huffmanTree.top(),encodedMap);
@@ -158,8 +187,7 @@ int main(){
     encodedString += encodedMap[c-'A'];
   }
   cout<<"ENCODED TEXT : "<<encodedString<<endl;
-
-
+  cout<<"DECODING TEXT : "<<decodeString(huffmanTree.top(),encodedString)<<endl;
   cout<<"\n-Releasing Resources-\n";
   releaseMemory(huffmanTree.top());
 }

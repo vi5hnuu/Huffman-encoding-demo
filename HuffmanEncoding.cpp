@@ -72,7 +72,7 @@ void encodedTextMap(const Node *root,vector<string> &paths,string path="",Direct
   if(!root){
     return;
   }
-  char pathSlug=' ';
+  char pathSlug='\0';
   if(parDir!=Direction::STATIC){
     if(parDir==Direction::RIGHT){
       pathSlug='0';
@@ -89,6 +89,33 @@ void encodedTextMap(const Node *root,vector<string> &paths,string path="",Direct
   encodedTextMap(root->right,paths,path+pathSlug,Direction::LEFT);
 }
 
+
+pair<char,int> decodeUnit(const Node *root,const string &encodedStr,int i){
+  //FFFFAABBAAABCCCCCDDEDEAABBCAAA
+  if(!root){
+    return {' ',0};
+  }
+
+  if(!root->left && !root->right){
+    return {root->c,i};
+  }
+  if(encodedStr[i]=='0'){
+    return decodeUnit(root->left,encodedStr,i+1);
+  }else{
+    return decodeUnit(root->right,encodedStr,i+1);
+  }
+}
+string decodeString(const Node *tree,const string &encodedStr){
+  //FFFFAABBAAABCCCCCDDEDEAABBCAAA
+    int i=1;
+    string ans="";
+    while(i<encodedStr.length()){
+      pair<char,int> p=decodeUnit(tree,encodedStr,i);
+      ans+=p.first;
+      i=p.second+1;
+    }
+  return ans;
+}
 
 void releaseMemory(const Node *root){
     if(!root){
@@ -197,7 +224,7 @@ int main(){
     cout<<"Compression not possible for "<<encodeStr<<endl;
   }
 
-  // inorderTree(tree);
+  inorderTree(tree);
   /*
     [ 2 E  ]
     [ 5 *  ]
@@ -228,7 +255,8 @@ int main(){
     encodedString += encodedMap[c-'A'];
   }
   cout<<"ENCODED TEXT : "<<encodedString<<endl;
-
+  
+  cout<<"DECODED TEXT : "<<decodeString(tree,encodedString);
 
   cout<<"\n-Releasing Resources-\n";
   releaseMemory(tree);
